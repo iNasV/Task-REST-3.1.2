@@ -1,11 +1,16 @@
 package ru.itmentor.spring.boot_security.demo.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.itmentor.spring.boot_security.demo.model.Person;
+import ru.itmentor.spring.boot_security.demo.security.PersonDetails;
 import ru.itmentor.spring.boot_security.demo.service.PersonService;
 import ru.itmentor.spring.boot_security.demo.service.RoleService;
 import ru.itmentor.spring.boot_security.demo.util.PersonValidator;
@@ -19,11 +24,13 @@ public class PersonController {
     private final PersonService personService;
     private final RoleService roleService;
     private final PersonValidator personValidator;
+    private final PasswordEncoder passwordEncoder;
 
-    public PersonController(PersonService personService, RoleService roleService, PersonValidator personValidator) {
+    public PersonController(PersonService personService, RoleService roleService, PersonValidator personValidator, PasswordEncoder passwordEncoder) {
         this.personService = personService;
         this.roleService = roleService;
         this.personValidator = personValidator;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Определение типа главной страницы в соответствии с ролью
@@ -98,6 +105,10 @@ public class PersonController {
         if (bindingResult.hasErrors()) {
             return "new/view_create_user";
         }
+
+        var string = passwordEncoder.encode(person.getPassword());
+        person.setPassword(string);
+
         personService.save(person);
         return "redirect:/";
     }
